@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
@@ -20,8 +21,47 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white to-green-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sprinkle-green mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading SprinkleX...</p>
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-12 w-12 border-b-2 border-sprinkle-green mx-auto mb-6"
+          ></motion.div>
+          
+          <div className="flex items-center justify-center space-x-1 text-gray-600">
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="text-lg font-medium"
+            >
+              Loading
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-lg font-medium bg-gradient-to-r from-sprinkle-green to-sprinkle-blue bg-clip-text text-transparent"
+            >
+              SprinkleX
+            </motion.span>
+            <div className="flex space-x-1 ml-1">
+              <motion.div
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                className="w-1 h-1 bg-sprinkle-green rounded-full"
+              ></motion.div>
+              <motion.div
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.7 }}
+                className="w-1 h-1 bg-sprinkle-green rounded-full"
+              ></motion.div>
+              <motion.div
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.9 }}
+                className="w-1 h-1 bg-sprinkle-green rounded-full"
+              ></motion.div>
+            </div>
+          </div>
         </div>
       </div>
     );
