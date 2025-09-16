@@ -49,15 +49,18 @@ export const FarmProvider = ({ children }) => {
   const generateSprinklers = (farmData) => {
     if (!farmData) return;
 
-    const sprinklerCount = Math.min(4, Math.max(2, Math.ceil(farmData.landSize / 5)));
+    const sprinklerCount = Math.min(8, Math.max(4, Math.ceil(farmData.landSize / 5)));
     const newSprinklers = Array.from({ length: sprinklerCount }, (_, index) => {
       const currentMoisture = Math.floor(Math.random() * 100);
       const now = new Date();
       const lastWatered = new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000); // Random time in last 24 hours
+      const landId = Math.floor(index / (sprinklerCount / 2)) + 1; // Distribute sprinklers across 2 lands
       
       return {
         id: index + 1,
         name: `Sprinkler ${index + 1}`,
+        landId: landId,
+        landName: `Land ${landId}`,
         moisture: currentMoisture,
         requiredMoisture: 65 + Math.floor(Math.random() * 20), // 65-85%
         status: getStatus(currentMoisture),
@@ -175,6 +178,31 @@ export const FarmProvider = ({ children }) => {
     return next.toISOString();
   };
 
+  // Get lands data for dashboard
+  const getLands = () => {
+    const lands = [];
+    const landIds = [...new Set(sprinklers.map(s => s.landId))];
+    
+    landIds.forEach(landId => {
+      const landSprinklers = sprinklers.filter(s => s.landId === landId);
+      const activeSprinklers = landSprinklers.filter(s => s.isActive).length;
+      const avgMoisture = Math.round(landSprinklers.reduce((sum, s) => sum + s.moisture, 0) / landSprinklers.length);
+      const criticalSprinklers = landSprinklers.filter(s => s.status === 'critical').length;
+      
+      lands.push({
+        id: landId,
+        name: `Land ${landId}`,
+        sprinklerCount: landSprinklers.length,
+        activeSprinklers: activeSprinklers,
+        avgMoisture: avgMoisture || 0,
+        criticalSprinklers: criticalSprinklers,
+        status: criticalSprinklers > 0 ? 'critical' : avgMoisture < 40 ? 'dry' : 'good'
+      });
+    });
+    
+    return lands;
+  };
+
   const value = {
     farmData,
     sprinklers,
@@ -183,7 +211,8 @@ export const FarmProvider = ({ children }) => {
     toggleSprinkler,
     getStatusColor,
     updateMoistureLevels,
-    addAlert
+    addAlert,
+    getLands
   };
 
   return <FarmContext.Provider value={value}>{children}</FarmContext.Provider>;

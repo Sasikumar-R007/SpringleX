@@ -152,29 +152,16 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle }) => {
                         </div>
                       </div>
 
-                      <div className="bg-green-50 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Thermometer className="w-5 h-5 text-green-500" />
-                          <span className="text-2xl font-bold text-green-700">
-                            {sprinkler.soilTemperature}°C
-                          </span>
-                        </div>
-                        <p className="text-sm text-green-600 mb-1">Soil Temperature</p>
-                        <p className="text-xs text-gray-600">
-                          Optimal for {sprinkler.cropType}
-                        </p>
-                      </div>
-
                       <div className="bg-purple-50 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
                           <Activity className="w-5 h-5 text-purple-500" />
                           <span className="text-2xl font-bold text-purple-700">
-                            {sprinkler.systemPressure} bar
+                            {sprinkler.waterFlowRate} L/min
                           </span>
                         </div>
-                        <p className="text-sm text-purple-600 mb-1">System Pressure</p>
+                        <p className="text-sm text-purple-600 mb-1">Water Flow Rate</p>
                         <p className="text-xs text-gray-600">
-                          Flow: {sprinkler.waterFlowRate} L/min
+                          Efficient watering
                         </p>
                       </div>
                     </div>
@@ -276,23 +263,23 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle }) => {
                       <div className="bg-gray-50 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Activity className="w-4 h-4 text-purple-500 mr-2" />
-                            <span className="text-sm font-medium">Water Pressure</span>
-                          </div>
-                          <span className="text-lg font-bold">{sprinkler.systemPressure} bar</span>
-                        </div>
-                        <p className="text-xs text-gray-600">Normal operating range</p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
                             <Droplet className="w-4 h-4 text-blue-500 mr-2" />
                             <span className="text-sm font-medium">Flow Rate</span>
                           </div>
                           <span className="text-lg font-bold">{sprinkler.waterFlowRate} L/min</span>
                         </div>
                         <p className="text-xs text-gray-600">Consistent flow maintained</p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium">Coverage</span>
+                          </div>
+                          <span className="text-lg font-bold">{sprinkler.coverage}</span>
+                        </div>
+                        <p className="text-xs text-gray-600">Area coverage</p>
                       </div>
                     </div>
                   </div>

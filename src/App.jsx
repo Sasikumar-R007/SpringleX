@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import Auth from './pages/Auth';
 import FarmSetup from './pages/FarmSetup';
 import Dashboard from './pages/Dashboard';
+import SprinklersPage from './pages/SprinklersPage';
 import Profile from './pages/Profile';
 
 function App() {
@@ -45,6 +46,10 @@ function App() {
         <Route
           path="/dashboard"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/land/:landId/sprinklers"
+          element={isAuthenticated ? <SprinklersPage /> : <Navigate to="/auth" replace />}
         />
         <Route
           path="/profile"
