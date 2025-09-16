@@ -43,7 +43,7 @@ const Features = () => {
   ];
 
   return (
-    <section id="features" className="py-12 sm:py-16 lg:py-20 bg-white scroll-mt-16">
+    <section id="features" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-bl from-emerald-50/30 via-white to-green-50/20 scroll-mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

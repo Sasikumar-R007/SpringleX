@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin } from 'lucide-react';
 
 const Contact = () => {
   return (
-    <section id="contact" className="py-12 sm:py-16 lg:py-20 bg-white scroll-mt-16">
+    <section id="contact" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-green-50/20 via-white to-emerald-50/25 scroll-mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

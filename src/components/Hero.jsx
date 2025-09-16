@@ -15,7 +15,7 @@ const Hero = () => {
   };
 
   return (
-    <section id="home" className="min-h-screen bg-white flex items-center justify-center relative scroll-mt-16">
+    <section id="home" className="min-h-screen bg-gradient-to-br from-white via-green-50/30 to-emerald-50/40 flex items-center justify-center relative scroll-mt-16">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

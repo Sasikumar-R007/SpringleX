@@ -21,7 +21,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-12 sm:py-16 lg:py-20 bg-gray-50 scroll-mt-16">
+    <section id="how-it-works" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-tr from-green-50/40 via-gray-50 to-emerald-50/30 scroll-mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
