@@ -11,10 +11,11 @@ import {
   MapPin,
   Clock,
   Zap,
-  Settings
+  Settings,
+  ShieldAlert
 } from 'lucide-react';
 
-const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle }) => {
+const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle, onEmergencyStop, getText }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!sprinkler) return null;
@@ -88,7 +89,7 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle }) => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => onToggle(sprinkler.id)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-lg font-medium smooth-transition ${
                       sprinkler.isActive
                         ? 'bg-red-100 text-red-800 hover:bg-red-200'
                         : 'bg-sprinkle-green text-white hover:bg-green-600'
@@ -96,9 +97,21 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle }) => {
                   >
                     {sprinkler.isActive ? 'Stop Sprinkling' : 'Start Sprinkling'}
                   </button>
+                  
+                  {sprinkler.isActive && (
+                    <button
+                      onClick={() => onEmergencyStop && onEmergencyStop(sprinkler.id)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-accent-red to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 smooth-transition font-medium shadow-soft hover:shadow-medium"
+                      title={getText ? getText('emergencyStop') : 'Emergency Stop'}
+                    >
+                      <ShieldAlert size={16} />
+                      <span>{getText ? getText('emergencyStop') : 'Emergency Stop'}</span>
+                    </button>
+                  )}
+                  
                   <button
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg smooth-transition"
                   >
                     <X size={20} />
                   </button>

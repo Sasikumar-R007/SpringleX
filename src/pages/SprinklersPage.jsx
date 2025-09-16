@@ -12,12 +12,14 @@ import {
   RefreshCw,
   Bell,
   ArrowLeft,
-  MapPin
+  MapPin,
+  Shield,
+  ShieldAlert
 } from 'lucide-react';
 
 const SprinklersPage = () => {
   const { user } = useAuth();
-  const { farmData, sprinklers, alerts, toggleSprinkler, getStatusColor, updateMoistureLevels } = useFarm();
+  const { farmData, sprinklers, alerts, toggleSprinkler, emergencyDisableLand, emergencyDisableAll, getStatusColor, updateMoistureLevels } = useFarm();
   const navigate = useNavigate();
   const { landId } = useParams();
   const [language, setLanguage] = useState(localStorage.getItem('sprinkleX_language') || 'en');
@@ -46,7 +48,11 @@ const SprinklersPage = () => {
       off: 'OFF',
       refresh: 'Refresh Data',
       noAlerts: 'No recent alerts',
-      noSprinklers: 'No sprinklers found for this land'
+      noSprinklers: 'No sprinklers found for this land',
+      emergencyStopLand: 'Emergency Stop - This Land',
+      emergencyStopAll: 'Emergency Stop - All Lands',
+      emergencyTitle: 'Emergency Controls',
+      emergencyStop: 'Emergency Stop'
     },
     ta: {
       backToLands: 'நிலங்களுக்கு திரும்பு',
@@ -63,7 +69,11 @@ const SprinklersPage = () => {
       off: 'நிறுத்து',
       refresh: 'தரவை புதுப்பிக்கவும்',
       noAlerts: 'சமீபத்திய எச்சரிக்கைகள் இல்லை',
-      noSprinklers: 'இந்த நிலத்திற்கு ஸ்பிரிங்க்லர்கள் இல்லை'
+      noSprinklers: 'இந்த நிலத்திற்கு ஸ்பிரிங்க்லர்கள் இல்லை',
+      emergencyStopLand: 'அவசர நிறுத்தம் - இந்த நிலம்',
+      emergencyStopAll: 'அவசர நிறுத்தம் - அனைத்து நிலங்களும்',
+      emergencyTitle: 'அவசர கட்டுப்பாடுகள்',
+      emergencyStop: 'அவசர நிறுத்தம்'
     }
   };
 
@@ -90,6 +100,7 @@ const SprinklersPage = () => {
   const getAlertIcon = (type) => {
     switch (type) {
       case 'warning': return <AlertTriangle size={16} className="text-yellow-500" />;
+      case 'critical': return <ShieldAlert size={16} className="text-red-500" />;
       case 'success': return <Droplet size={16} className="text-green-500" />;
       default: return <Bell size={16} className="text-blue-500" />;
     }
@@ -143,11 +154,53 @@ const SprinklersPage = () => {
           </div>
         </motion.div>
 
+        {/* Emergency Controls Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-6 mb-8 shadow-soft"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-red-100 rounded-full">
+                <ShieldAlert className="w-6 h-6 text-accent-red" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-sprinkle-dark">
+                  {getText('emergencyTitle')}
+                </h2>
+                <p className="text-sm text-sprinkle-gray">
+                  Instantly disable sprinklers in emergency situations
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4">
+              <button
+                onClick={() => emergencyDisableLand(parseInt(landId))}
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-accent-red to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 smooth-transition font-medium shadow-soft hover:shadow-medium"
+              >
+                <Shield size={18} />
+                <span>{getText('emergencyStopLand')}</span>
+              </button>
+              
+              <button
+                onClick={() => emergencyDisableAll()}
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-700 to-red-800 text-white rounded-xl hover:from-red-800 hover:to-red-900 smooth-transition font-bold shadow-medium hover:shadow-strong border-2 border-red-800"
+              >
+                <ShieldAlert size={18} />
+                <span>{getText('emergencyStopAll')}</span>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Action Bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.3 }}
           className="mb-6 flex justify-between items-center"
         >
           <h2 className="text-2xl font-bold text-gray-900">
@@ -301,6 +354,8 @@ const SprinklersPage = () => {
           isOpen={!!selectedSprinkler}
           onClose={() => setSelectedSprinklerId(null)}
           onToggle={toggleSprinkler}
+          onEmergencyStop={toggleSprinkler}
+          getText={getText}
         />
       </div>
     </div>

@@ -209,6 +209,60 @@ export const FarmProvider = ({ children }) => {
     });
   };
 
+  const emergencyDisableLand = (landId) => {
+    const landSprinklers = sprinklers.filter(s => s.landId === landId && s.isActive);
+    
+    if (landSprinklers.length === 0) return;
+
+    setSprinklers(prevSprinklers => 
+      prevSprinklers.map(sprinkler => 
+        sprinkler.landId === landId && sprinkler.isActive
+          ? { ...sprinkler, isActive: false }
+          : sprinkler
+      )
+    );
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    addAlert({
+      id: Date.now(),
+      message: `EMERGENCY STOP: All ${landSprinklers.length} active sprinklers in Land ${landId} have been disabled`,
+      time: timeString,
+      type: 'warning'
+    });
+  };
+
+  const emergencyDisableAll = () => {
+    const activeSprinklers = sprinklers.filter(s => s.isActive);
+    
+    if (activeSprinklers.length === 0) return;
+
+    setSprinklers(prevSprinklers => 
+      prevSprinklers.map(sprinkler => 
+        sprinkler.isActive ? { ...sprinkler, isActive: false } : sprinkler
+      )
+    );
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    addAlert({
+      id: Date.now(),
+      message: `EMERGENCY STOP: All ${activeSprinklers.length} active sprinklers across all lands have been disabled`,
+      time: timeString,
+      type: 'critical'
+    });
+  };
+
   const addAlert = (alert) => {
     setAlerts(prevAlerts => [alert, ...prevAlerts.slice(0, 9)]);
   };
@@ -330,6 +384,8 @@ export const FarmProvider = ({ children }) => {
     addLand,
     deleteLand,
     toggleSprinkler,
+    emergencyDisableLand,
+    emergencyDisableAll,
     getStatusColor,
     updateMoistureLevels,
     addAlert,
