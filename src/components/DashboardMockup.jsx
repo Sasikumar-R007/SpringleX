@@ -20,19 +20,19 @@ const DashboardMockup = () => {
   };
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-12 lg:mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-sprinkle-dark mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-sprinkle-dark mb-4 sm:mb-6">
             Live Dashboard
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-4 sm:px-0">
             Monitor your entire irrigation system in real-time with our intuitive dashboard
           </p>
         </motion.div>
@@ -42,7 +42,7 @@ const DashboardMockup = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
-          className="bg-white rounded-2xl shadow-2xl p-8 mx-auto max-w-6xl"
+          className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 mx-auto max-w-6xl"
         >
           {/* Dashboard Header */}
           <div className="border-b border-gray-200 pb-6 mb-8">

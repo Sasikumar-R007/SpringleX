@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,8 +15,8 @@ const Hero = () => {
   };
 
   return (
-    <section id="home" className="min-h-screen bg-gradient-to-br from-sprinkle-gray-light via-white to-emerald-50 flex items-center justify-center relative scroll-mt-16 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+    <section id="home" className="min-h-screen bg-gradient-to-br from-white via-sprinkle-gray-light to-white flex items-center justify-center relative scroll-mt-16 overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -32,7 +31,7 @@ const Hero = () => {
             🌱 Smart Agriculture Revolution
           </motion.div>
           
-          <h1 className="text-7xl md:text-9xl font-bold bg-gradient-to-r from-sprinkle-dark via-sprinkle-green to-sprinkle-blue bg-clip-text text-transparent mb-6 leading-tight">
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-r from-sprinkle-dark via-sprinkle-green to-sprinkle-blue bg-clip-text text-transparent mb-8 leading-tight">
             SprinkleX
           </h1>
           
@@ -40,7 +39,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-2xl md:text-3xl font-semibold text-sprinkle-gray mb-6 max-w-2xl mx-auto"
+            className="text-xl sm:text-2xl lg:text-3xl font-semibold text-sprinkle-gray mb-8 max-w-2xl mx-auto"
           >
             Water Smart. Grow Smart.
           </motion.p>
@@ -49,7 +48,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-lg md:text-xl text-sprinkle-gray/80 mb-12 max-w-4xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg lg:text-xl text-sprinkle-gray/80 mb-16 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             Revolutionary IoT-powered agricultural sprinkler system that optimizes water usage 
             through smart sensors and automated zonal watering technology for sustainable farming.
@@ -59,25 +58,16 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.9, duration: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            className="flex justify-center items-center"
           >
             <button
               onClick={handleGetStarted}
-              className="group relative bg-gradient-to-r from-sprinkle-green to-sprinkle-green-light text-white px-8 py-4 rounded-2xl text-lg font-semibold smooth-transition transform hover:scale-105 shadow-medium hover:shadow-strong overflow-hidden"
+              className="group relative bg-gradient-to-r from-sprinkle-green to-sprinkle-green-light text-white px-8 sm:px-12 py-4 sm:py-5 rounded-2xl text-lg sm:text-xl font-semibold smooth-transition transform hover:scale-105 shadow-medium hover:shadow-strong overflow-hidden"
             >
               <span className="relative z-10">
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-sprinkle-green-dark to-sprinkle-green opacity-0 group-hover:opacity-100 smooth-transition"></div>
-            </button>
-            
-            <button className="flex items-center px-6 py-3 text-sprinkle-gray font-medium hover:text-sprinkle-green smooth-transition">
-              <span className="mr-2">Watch Demo</span>
-              <div className="w-12 h-12 bg-white rounded-full shadow-soft flex items-center justify-center group-hover:shadow-medium smooth-transition">
-                <svg className="w-5 h-5 text-sprinkle-green ml-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8 5v10l8-5-8-5z"/>
-                </svg>
-              </div>
             </button>
           </motion.div>
         </motion.div>
@@ -118,22 +108,6 @@ const Hero = () => {
           className="absolute bottom-1/3 left-20 w-3 h-3 bg-accent-orange rounded-full opacity-70"
         ></motion.div>
         
-        {/* Improved Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.8 }}
-          className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="flex flex-col items-center text-sprinkle-gray/60 hover:text-sprinkle-green smooth-transition cursor-pointer"
-          >
-            <span className="text-sm font-medium mb-2">Scroll to explore</span>
-            <ChevronDown size={24} />
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );
