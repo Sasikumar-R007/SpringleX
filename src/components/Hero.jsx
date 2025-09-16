@@ -15,7 +15,7 @@ const Hero = () => {
   };
 
   return (
-    <section id="home" className="min-h-screen bg-gradient-to-br from-white via-sprinkle-gray-light to-white flex items-center justify-center relative scroll-mt-16 overflow-hidden">
+    <section id="home" className="min-h-screen bg-white flex items-center justify-center relative scroll-mt-16">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -105,41 +105,6 @@ const Hero = () => {
           </motion.div>
         </motion.div>
         
-        {/* Enhanced Background decoration */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-1/4 -left-1/4 w-96 h-96 bg-gradient-to-r from-sprinkle-green/10 to-sprinkle-blue/10 rounded-full blur-3xl"
-          ></motion.div>
-          <motion.div 
-            animate={{ rotate: -360 }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-1/4 -right-1/4 w-128 h-128 bg-gradient-to-r from-sprinkle-blue/10 to-accent-purple/10 rounded-full blur-3xl"
-          ></motion.div>
-          <motion.div 
-            animate={{ y: [-20, 20, -20] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-1/3 right-1/4 w-32 h-32 bg-accent-orange/20 rounded-full blur-2xl"
-          ></motion.div>
-        </div>
-        
-        {/* Floating elements */}
-        <motion.div 
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-12 w-6 h-6 bg-sprinkle-green rounded-full opacity-60"
-        ></motion.div>
-        <motion.div 
-          animate={{ y: [0, 15, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-1/3 right-16 w-4 h-4 bg-sprinkle-blue rounded-full opacity-50"
-        ></motion.div>
-        <motion.div 
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/3 left-20 w-3 h-3 bg-accent-orange rounded-full opacity-70"
-        ></motion.div>
         
       </div>
     </section>
