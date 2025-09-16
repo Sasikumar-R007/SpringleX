@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldAlert
 } from 'lucide-react';
+import ESP8266MoistureSensor from './ESP8266MoistureSensor';
 
 const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle, onEmergencyStop, getText }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -229,73 +230,7 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle, onEmergencyStop,
                 )}
 
                 {activeTab === 'sensors' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Soil Conditions</h3>
-                      
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <Beaker className="w-4 h-4 text-blue-500 mr-2" />
-                            <span className="text-sm font-medium">pH Level</span>
-                          </div>
-                          <span className="text-lg font-bold">{sprinkler.soilPH}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full"
-                            style={{ width: `${((sprinkler.soilPH - 6) / 2) * 100}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>6.0</span>
-                          <span>8.0</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <Zap className="w-4 h-4 text-green-500 mr-2" />
-                            <span className="text-sm font-medium">Nutrient Level</span>
-                          </div>
-                          <span className="text-lg font-bold">{sprinkler.nutrientLevel}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-500 h-2 rounded-full"
-                            style={{ width: `${sprinkler.nutrientLevel}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">System Health</h3>
-                      
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <Droplet className="w-4 h-4 text-blue-500 mr-2" />
-                            <span className="text-sm font-medium">Flow Rate</span>
-                          </div>
-                          <span className="text-lg font-bold">{sprinkler.waterFlowRate} L/min</span>
-                        </div>
-                        <p className="text-xs text-gray-600">Consistent flow maintained</p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <MapPin className="w-4 h-4 text-gray-500 mr-2" />
-                            <span className="text-sm font-medium">Coverage</span>
-                          </div>
-                          <span className="text-lg font-bold">{sprinkler.coverage}</span>
-                        </div>
-                        <p className="text-xs text-gray-600">Area coverage</p>
-                      </div>
-                    </div>
-                  </div>
+                  <ESP8266MoistureSensor />
                 )}
 
                 {activeTab === 'schedule' && (
