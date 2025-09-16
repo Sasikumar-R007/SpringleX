@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useFarm } from '../contexts/FarmContext';
 import { useNavigate } from 'react-router-dom';
+import SprinklerModal from '../components/SprinklerModal';
 import { 
   Droplet, 
   AlertTriangle, 
@@ -10,21 +11,26 @@ import {
   Power, 
   RefreshCw,
   Edit3,
-  Bell
+  Bell,
+  X
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { farmData, zones, alerts, toggleZone, getStatusColor, updateMoistureLevels } = useFarm();
+  const { farmData, sprinklers, alerts, toggleSprinkler, getStatusColor, updateMoistureLevels } = useFarm();
   const navigate = useNavigate();
   const [language, setLanguage] = useState(localStorage.getItem('sprinkleX_language') || 'en');
+  const [selectedSprinklerId, setSelectedSprinklerId] = useState(null);
+  
+  // Get current sprinkler data for modal (ensures live updates)
+  const selectedSprinkler = selectedSprinklerId ? sprinklers.find(s => s.id === selectedSprinklerId) : null;
 
   // Translations
   const t = {
     en: {
       welcome: 'Welcome back',
       farmDetails: 'Farm Details',
-      zones: 'Irrigation Zones',
+      zones: 'Smart Sprinklers',
       recentAlerts: 'Recent Alerts',
       editFarmDetails: 'Edit Farm Details',
       moisture: 'Moisture',
@@ -41,7 +47,7 @@ const Dashboard = () => {
     ta: {
       welcome: 'மீண்டும் வருக',
       farmDetails: 'பண்ணை விவரங்கள்',
-      zones: 'நீர்ப்பாசன மண்டலங்கள்',
+      zones: 'ஸ்மார்ட் ஸ்பிரிங்க்லர்கள்',
       recentAlerts: 'சமீபத்திய எச்சரிக்கைகள்',
       editFarmDetails: 'பண்ணை விவரங்களைத் திருத்து',
       moisture: 'ஈரப்பதம்',
@@ -168,27 +174,28 @@ const Dashboard = () => {
           </button>
         </motion.div>
 
-        {/* Zones Grid */}
+        {/* Sprinklers Grid */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          {zones.map((zone, index) => (
+          {sprinklers.map((sprinkler, index) => (
             <motion.div
-              key={zone.id}
+              key={sprinkler.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index }}
-              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => setSelectedSprinklerId(sprinkler.id)}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50"
             >
-              {/* Zone Header */}
+              {/* Sprinkler Header */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {zone.name}
+                  {sprinkler.name}
                 </h3>
-                <div className={`w-3 h-3 rounded-full ${getStatusColor(zone.status)}`} />
+                <div className={`w-3 h-3 rounded-full ${getStatusColor(sprinkler.status)}`} />
               </div>
 
               {/* Moisture Level */}
@@ -198,17 +205,17 @@ const Dashboard = () => {
                     {getText('moisture')}
                   </span>
                   <span className="font-bold text-sprinkle-green">
-                    {zone.moisture}%
+                    {sprinkler.moisture}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${zone.moisture}%` }}
+                    animate={{ width: `${sprinkler.moisture}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
                     className={`h-2 rounded-full transition-all duration-500 ${
-                      zone.moisture >= 70 ? 'bg-green-500' : 
-                      zone.moisture >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                      sprinkler.moisture >= 70 ? 'bg-green-500' : 
+                      sprinkler.moisture >= 40 ? 'bg-yellow-500' : 'bg-red-500'
                     }`}
                   />
                 </div>
@@ -220,10 +227,10 @@ const Dashboard = () => {
                   {getText('status')}: 
                 </span>
                 <span className={`ml-2 text-sm font-medium ${
-                  zone.status === 'good' ? 'text-green-600' :
-                  zone.status === 'dry' ? 'text-yellow-600' : 'text-red-600'
+                  sprinkler.status === 'good' ? 'text-green-600' :
+                  sprinkler.status === 'dry' ? 'text-yellow-600' : 'text-red-600'
                 }`}>
-                  {getStatusText(zone.status)}
+                  {getStatusText(sprinkler.status)}
                 </span>
               </div>
 
@@ -233,15 +240,18 @@ const Dashboard = () => {
                   {getText('control')}
                 </span>
                 <button
-                  onClick={() => toggleZone(zone.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSprinkler(sprinkler.id);
+                  }}
                   className={`flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    zone.isActive
+                    sprinkler.isActive
                       ? 'bg-green-100 text-green-800 hover:bg-green-200'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <Power size={12} className="mr-1" />
-                  {zone.isActive ? getText('on') : getText('off')}
+                  {sprinkler.isActive ? getText('on') : getText('off')}
                 </button>
               </div>
             </motion.div>
@@ -285,6 +295,14 @@ const Dashboard = () => {
             </p>
           )}
         </motion.div>
+
+        {/* Sprinkler Detail Modal */}
+        <SprinklerModal
+          sprinkler={selectedSprinkler}
+          isOpen={!!selectedSprinkler}
+          onClose={() => setSelectedSprinklerId(null)}
+          onToggle={toggleSprinkler}
+        />
       </div>
     </div>
   );

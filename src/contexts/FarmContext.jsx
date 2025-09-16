@@ -12,7 +12,7 @@ export const useFarm = () => {
 
 export const FarmProvider = ({ children }) => {
   const [farmData, setFarmData] = useState(null);
-  const [zones, setZones] = useState([]);
+  const [sprinklers, setSprinklers] = useState([]);
   const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
@@ -21,13 +21,13 @@ export const FarmProvider = ({ children }) => {
     if (storedFarmData) {
       const data = JSON.parse(storedFarmData);
       setFarmData(data);
-      generateZones(data);
+      generateSprinklers(data);
     }
 
     // Generate initial alerts
     const initialAlerts = [
-      { id: 1, message: 'Zone 2 watered at 10:15 AM', time: '10:15 AM', type: 'info' },
-      { id: 2, message: 'Zone 1 moisture level critical', time: '9:45 AM', type: 'warning' },
+      { id: 1, message: 'Sprinkler 2 watered at 10:15 AM', time: '10:15 AM', type: 'info' },
+      { id: 2, message: 'Sprinkler 1 moisture level critical', time: '9:45 AM', type: 'warning' },
       { id: 3, message: 'System check completed', time: '9:00 AM', type: 'success' },
     ];
     setAlerts(initialAlerts);
@@ -43,23 +43,40 @@ export const FarmProvider = ({ children }) => {
   const saveFarmData = (data) => {
     localStorage.setItem('sprinkleX_farmData', JSON.stringify(data));
     setFarmData(data);
-    generateZones(data);
+    generateSprinklers(data);
   };
 
-  const generateZones = (farmData) => {
+  const generateSprinklers = (farmData) => {
     if (!farmData) return;
 
-    const zoneCount = Math.min(4, Math.max(2, Math.ceil(farmData.landSize / 5)));
-    const newZones = Array.from({ length: zoneCount }, (_, index) => ({
-      id: index + 1,
-      name: `Zone ${index + 1}`,
-      moisture: Math.floor(Math.random() * 100),
-      status: getStatus(Math.floor(Math.random() * 100)),
-      isActive: Math.random() > 0.5,
-      cropType: farmData.cropType
-    }));
+    const sprinklerCount = Math.min(4, Math.max(2, Math.ceil(farmData.landSize / 5)));
+    const newSprinklers = Array.from({ length: sprinklerCount }, (_, index) => {
+      const currentMoisture = Math.floor(Math.random() * 100);
+      const now = new Date();
+      const lastWatered = new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000); // Random time in last 24 hours
+      
+      return {
+        id: index + 1,
+        name: `Sprinkler ${index + 1}`,
+        moisture: currentMoisture,
+        requiredMoisture: 65 + Math.floor(Math.random() * 20), // 65-85%
+        status: getStatus(currentMoisture),
+        isActive: Math.random() > 0.5,
+        cropType: farmData.cropType,
+        lastWatered: lastWatered.toISOString(),
+        waterFlowRate: (2.5 + Math.random() * 2.5).toFixed(1), // 2.5-5.0 L/min
+        soilTemperature: (20 + Math.random() * 15).toFixed(1), // 20-35°C
+        soilPH: (6.0 + Math.random() * 2.0).toFixed(1), // 6.0-8.0 pH
+        nutrientLevel: Math.floor(Math.random() * 100), // 0-100%
+        systemPressure: (1.5 + Math.random() * 1.0).toFixed(1), // 1.5-2.5 bar
+        coverage: `${Math.floor(Math.random() * 20) + 10} sq.m`, // 10-30 sq.m
+        waterUsedToday: (Math.random() * 50 + 20).toFixed(1), // 20-70 liters
+        nextScheduled: getNextScheduledTime(),
+        deviceId: `SPX-${String(index + 1).padStart(3, '0')}`
+      };
+    });
 
-    setZones(newZones);
+    setSprinklers(newSprinklers);
   };
 
   const getStatus = (moisture) => {
@@ -77,17 +94,17 @@ export const FarmProvider = ({ children }) => {
     }
   };
 
-  const toggleZone = (zoneId) => {
-    setZones(prevZones => 
-      prevZones.map(zone => 
-        zone.id === zoneId 
-          ? { ...zone, isActive: !zone.isActive }
-          : zone
+  const toggleSprinkler = (sprinklerId) => {
+    setSprinklers(prevSprinklers => 
+      prevSprinklers.map(sprinkler => 
+        sprinkler.id === sprinklerId 
+          ? { ...sprinkler, isActive: !sprinkler.isActive, lastWatered: sprinkler.isActive ? sprinkler.lastWatered : new Date().toISOString() }
+          : sprinkler
       )
     );
 
-    // Add alert when zone is toggled
-    const zone = zones.find(z => z.id === zoneId);
+    // Add alert when sprinkler is toggled
+    const sprinkler = sprinklers.find(s => s.id === sprinklerId);
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
@@ -97,7 +114,7 @@ export const FarmProvider = ({ children }) => {
     
     addAlert({
       id: Date.now(),
-      message: `Zone ${zoneId} ${!zone?.isActive ? 'activated' : 'deactivated'}`,
+      message: `Sprinkler ${sprinklerId} ${!sprinkler?.isActive ? 'started sprinkling' : 'stopped sprinkling'}`,
       time: timeString,
       type: 'info'
     });
@@ -134,26 +151,36 @@ export const FarmProvider = ({ children }) => {
   };
 
   const updateMoistureLevels = () => {
-    setZones(prevZones => 
-      prevZones.map(zone => {
+    setSprinklers(prevSprinklers => 
+      prevSprinklers.map(sprinkler => {
         const newMoisture = Math.max(0, Math.min(100, 
-          zone.moisture + (Math.random() - 0.5) * 10
+          sprinkler.moisture + (Math.random() - 0.5) * 10
         ));
         return {
-          ...zone,
+          ...sprinkler,
           moisture: Math.floor(newMoisture),
-          status: getStatus(Math.floor(newMoisture))
+          status: getStatus(Math.floor(newMoisture)),
+          soilTemperature: (20 + Math.random() * 15).toFixed(1),
+          systemPressure: (1.5 + Math.random() * 1.0).toFixed(1)
         };
       })
     );
   };
 
+  // Helper function for next scheduled time
+  const getNextScheduledTime = () => {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(next.getHours() + Math.floor(Math.random() * 12) + 1); // 1-12 hours from now
+    return next.toISOString();
+  };
+
   const value = {
     farmData,
-    zones,
+    sprinklers,
     alerts,
     saveFarmData,
-    toggleZone,
+    toggleSprinkler,
     getStatusColor,
     updateMoistureLevels,
     addAlert

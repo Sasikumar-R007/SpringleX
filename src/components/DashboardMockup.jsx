@@ -2,16 +2,17 @@ import { motion } from 'framer-motion';
 import { Gauge, Droplets, Zap, TrendingUp } from 'lucide-react';
 
 const DashboardMockup = () => {
-  const zones = [
-    { name: 'Zone A', moisture: 85, status: 'optimal', waterUsage: '12L/hr' },
-    { name: 'Zone B', moisture: 45, status: 'watering', waterUsage: '18L/hr' },
-    { name: 'Zone C', moisture: 92, status: 'optimal', waterUsage: '8L/hr' },
-    { name: 'Zone D', moisture: 38, status: 'dry', waterUsage: '0L/hr' }
+  const sprinklers = [
+    { name: 'Sprinkler 1', moisture: 85, status: 'optimal', waterUsage: '12L/hr' },
+    { name: 'Sprinkler 2', moisture: 45, status: 'sprinkling', waterUsage: '18L/hr' },
+    { name: 'Sprinkler 3', moisture: 92, status: 'optimal', waterUsage: '8L/hr' },
+    { name: 'Sprinkler 4', moisture: 38, status: 'dry', waterUsage: '0L/hr' }
   ];
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'optimal': return 'text-green-600 bg-green-100';
+      case 'sprinkling': return 'text-blue-600 bg-blue-100';
       case 'watering': return 'text-blue-600 bg-blue-100';
       case 'dry': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -81,11 +82,11 @@ const DashboardMockup = () => {
             </div>
           </div>
 
-          {/* Zone Status Grid */}
+          {/* Sprinkler Status Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {zones.map((zone, index) => (
+            {sprinklers.map((sprinkler, index) => (
               <motion.div
-                key={zone.name}
+                key={sprinkler.name}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 * index }}
@@ -93,9 +94,9 @@ const DashboardMockup = () => {
                 className="bg-gray-50 rounded-lg p-4"
               >
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-sprinkle-dark">{zone.name}</h4>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(zone.status)}`}>
-                    {zone.status}
+                  <h4 className="font-semibold text-sprinkle-dark">{sprinkler.name}</h4>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(sprinkler.status)}`}>
+                    {sprinkler.status}
                   </span>
                 </div>
                 
@@ -103,19 +104,19 @@ const DashboardMockup = () => {
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-gray-600">Soil Moisture</span>
-                      <span className="font-medium">{zone.moisture}%</span>
+                      <span className="font-medium">{sprinkler.moisture}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
-                        className={`h-2 rounded-full ${zone.moisture > 70 ? 'bg-green-500' : zone.moisture > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                        style={{ width: `${zone.moisture}%` }}
+                        className={`h-2 rounded-full ${sprinkler.moisture > 70 ? 'bg-green-500' : sprinkler.moisture > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                        style={{ width: `${sprinkler.moisture}%` }}
                       ></div>
                     </div>
                   </div>
                   
                   <div className="text-sm">
                     <span className="text-gray-600">Water Usage: </span>
-                    <span className="font-medium">{zone.waterUsage}</span>
+                    <span className="font-medium">{sprinkler.waterUsage}</span>
                   </div>
                 </div>
               </motion.div>
