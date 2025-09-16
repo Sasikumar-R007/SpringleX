@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useFarm } from '../contexts/FarmContext';
+import WaterSourceSelector from '../components/WaterSourceSelector';
 import { useNavigate } from 'react-router-dom';
 import { 
   MapPin, 
@@ -341,43 +342,58 @@ const Dashboard = () => {
           ))}
         </motion.div>
 
-        {/* Recent Alerts */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {getText('recentAlerts')}
-          </h2>
-          {alerts.length > 0 ? (
-            <div className="space-y-3">
-              {alerts.slice(0, 5).map((alert) => (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="mr-3">
-                    {getAlertIcon(alert.type)}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{alert.message}</p>
-                  </div>
-                  <div className="text-xs text-gray-500 ml-4">
-                    {alert.time}
-                  </div>
-                </motion.div>
-              ))}
+        {/* Water Source Control and Recent Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Water Source Control */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-1"
+          >
+            <WaterSourceSelector />
+          </motion.div>
+          
+          {/* Recent Alerts */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="lg:col-span-2"
+          >
+            <div className="bg-white rounded-xl p-6 shadow-sm h-full">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                {getText('recentAlerts')}
+              </h2>
+              {alerts.length > 0 ? (
+                <div className="space-y-3">
+                  {alerts.slice(0, 5).map((alert) => (
+                    <motion.div
+                      key={alert.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="mr-3">
+                        {getAlertIcon(alert.type)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">{alert.message}</p>
+                      </div>
+                      <div className="text-xs text-gray-500 ml-4">
+                        {alert.time}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600 text-center py-8">
+                  {getText('noAlerts')}
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-600 text-center py-8">
-              {getText('noAlerts')}
-            </p>
-          )}
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Add Land Modal */}
         {showAddLandModal && (
