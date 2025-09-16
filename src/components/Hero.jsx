@@ -23,31 +23,58 @@ const Hero = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
+            initial={{ opacity: 0, y: -50, rotate: -10 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            transition={{ 
+              delay: 0.2, 
+              duration: 0.8,
+              type: "spring",
+              stiffness: 100,
+              damping: 10
+            }}
             className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-sprinkle-green/10 to-sprinkle-blue/10 rounded-full text-sm font-medium text-sprinkle-green border border-sprinkle-green/20 mb-8 mt-8 sm:mt-12 lg:mt-16"
           >
             🌱 Smart Agriculture Revolution
           </motion.div>
           
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-r from-sprinkle-dark via-sprinkle-green to-sprinkle-blue bg-clip-text text-transparent mb-8 leading-tight">
+          <motion.h1 
+            className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-r from-sprinkle-dark via-sprinkle-green to-sprinkle-blue bg-clip-text text-transparent mb-8 leading-tight"
+            initial={{ opacity: 0, scale: 0.5, rotateY: 90 }}
+            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+            transition={{ 
+              delay: 0.5, 
+              duration: 1,
+              type: "spring",
+              stiffness: 60,
+              damping: 20
+            }}
+          >
             SprinkleX
-          </h1>
+          </motion.h1>
           
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ 
+              delay: 0.8, 
+              duration: 0.8,
+              type: "spring",
+              stiffness: 80
+            }}
             className="text-xl sm:text-2xl lg:text-3xl font-semibold text-sprinkle-gray mb-8 max-w-2xl mx-auto"
           >
             Water Smart. Grow Smart.
           </motion.p>
           
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              delay: 1.1, 
+              duration: 0.8,
+              type: "spring",
+              stiffness: 70
+            }}
             className="text-base sm:text-lg lg:text-xl text-sprinkle-gray/80 mb-16 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             Revolutionary IoT-powered agricultural sprinkler system that optimizes water usage 
@@ -55,9 +82,15 @@ const Hero = () => {
           </motion.p>
           
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.9, duration: 0.3 }}
+            initial={{ opacity: 0, scale: 0, rotate: 180 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ 
+              delay: 1.4, 
+              duration: 0.6,
+              type: "spring",
+              stiffness: 150,
+              damping: 12
+            }}
             className="flex justify-center items-center"
           >
             <button
