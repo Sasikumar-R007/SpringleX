@@ -12,23 +12,49 @@ export const useFarm = () => {
 
 export const FarmProvider = ({ children }) => {
   const [farmData, setFarmData] = useState(null);
+  const [lands, setLands] = useState([]);
   const [sprinklers, setSprinklers] = useState([]);
   const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
-    // Load farm data from localStorage
+    // Load farm data and lands independently
     const storedFarmData = localStorage.getItem('sprinkleX_farmData');
+    const storedLands = localStorage.getItem('sprinkleX_lands');
+    
+    // Load farm data
     if (storedFarmData) {
       const data = JSON.parse(storedFarmData);
       setFarmData(data);
-      generateSprinklers(data);
+    }
+    
+    // Load lands independently - if they exist, use them
+    if (storedLands) {
+      const landsData = JSON.parse(storedLands);
+      setLands(landsData);
+      generateSprinklersForLands(landsData);
+    } else if (storedFarmData) {
+      // Create first land from existing farm data for backward compatibility only if no lands exist
+      const data = JSON.parse(storedFarmData);
+      const firstLand = {
+        id: 1,
+        name: 'Main Land',
+        landSize: data.landSize,
+        landUnit: data.landUnit,
+        cropType: data.cropType,
+        soilType: data.soilType,
+        cropCount: data.cropCount,
+        setupDate: data.setupDate || new Date().toISOString()
+      };
+      setLands([firstLand]);
+      localStorage.setItem('sprinkleX_lands', JSON.stringify([firstLand]));
+      generateSprinklersForLands([firstLand]);
     }
 
-    // Generate initial alerts
+    // Generate initial alerts with more realistic types
     const initialAlerts = [
-      { id: 1, message: 'Sprinkler 2 watered at 10:15 AM', time: '10:15 AM', type: 'info' },
-      { id: 2, message: 'Sprinkler 1 moisture level critical', time: '9:45 AM', type: 'warning' },
-      { id: 3, message: 'System check completed', time: '9:00 AM', type: 'success' },
+      { id: 1, message: 'Sprinkler fault detected in Main Land', time: '10:15 AM', type: 'warning' },
+      { id: 2, message: 'Solar panel dust accumulation alert', time: '9:45 AM', type: 'warning' },
+      { id: 3, message: 'System health check completed', time: '9:00 AM', type: 'success' },
     ];
     setAlerts(initialAlerts);
 
@@ -43,43 +69,81 @@ export const FarmProvider = ({ children }) => {
   const saveFarmData = (data) => {
     localStorage.setItem('sprinkleX_farmData', JSON.stringify(data));
     setFarmData(data);
-    generateSprinklers(data);
+    
+    // Only create first land if no lands exist, otherwise preserve existing lands
+    if (lands.length === 0) {
+      const firstLand = {
+        id: 1,
+        name: 'Main Land',
+        landSize: data.landSize,
+        landUnit: data.landUnit,
+        cropType: data.cropType,
+        soilType: data.soilType,
+        cropCount: data.cropCount,
+        setupDate: data.setupDate || new Date().toISOString()
+      };
+      const newLands = [firstLand];
+      setLands(newLands);
+      localStorage.setItem('sprinkleX_lands', JSON.stringify(newLands));
+      generateSprinklersForLands(newLands);
+    }
+    // If lands exist, don't overwrite them - keep existing lands intact
   };
 
-  const generateSprinklers = (farmData) => {
-    if (!farmData) return;
+  const addLand = (landData) => {
+    const newLand = {
+      ...landData,
+      id: Date.now(), // Use timestamp as unique ID
+      setupDate: new Date().toISOString()
+    };
+    
+    const updatedLands = [...lands, newLand];
+    setLands(updatedLands);
+    localStorage.setItem('sprinkleX_lands', JSON.stringify(updatedLands));
+    generateSprinklersForLands(updatedLands);
+    
+    return newLand;
+  };
 
-    const sprinklerCount = Math.min(8, Math.max(4, Math.ceil(farmData.landSize / 5)));
-    const newSprinklers = Array.from({ length: sprinklerCount }, (_, index) => {
-      const currentMoisture = Math.floor(Math.random() * 100);
-      const now = new Date();
-      const lastWatered = new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000); // Random time in last 24 hours
-      const landId = Math.floor(index / (sprinklerCount / 2)) + 1; // Distribute sprinklers across 2 lands
+  const generateSprinklersForLands = (landsData) => {
+    if (!landsData || landsData.length === 0) return;
+
+    let sprinklerCounter = 1;
+    const allSprinklers = [];
+
+    landsData.forEach((land) => {
+      const sprinklerCount = Math.min(6, Math.max(2, Math.ceil(land.landSize / 5)));
       
-      return {
-        id: index + 1,
-        name: `Sprinkler ${index + 1}`,
-        landId: landId,
-        landName: `Land ${landId}`,
-        moisture: currentMoisture,
-        requiredMoisture: 65 + Math.floor(Math.random() * 20), // 65-85%
-        status: getStatus(currentMoisture),
-        isActive: Math.random() > 0.5,
-        cropType: farmData.cropType,
-        lastWatered: lastWatered.toISOString(),
-        waterFlowRate: (2.5 + Math.random() * 2.5).toFixed(1), // 2.5-5.0 L/min
-        soilTemperature: (20 + Math.random() * 15).toFixed(1), // 20-35°C
-        soilPH: (6.0 + Math.random() * 2.0).toFixed(1), // 6.0-8.0 pH
-        nutrientLevel: Math.floor(Math.random() * 100), // 0-100%
-        systemPressure: (1.5 + Math.random() * 1.0).toFixed(1), // 1.5-2.5 bar
-        coverage: `${Math.floor(Math.random() * 20) + 10} sq.m`, // 10-30 sq.m
-        waterUsedToday: (Math.random() * 50 + 20).toFixed(1), // 20-70 liters
-        nextScheduled: getNextScheduledTime(),
-        deviceId: `SPX-${String(index + 1).padStart(3, '0')}`
-      };
+      for (let i = 0; i < sprinklerCount; i++) {
+        const currentMoisture = Math.floor(Math.random() * 100);
+        const now = new Date();
+        const lastWatered = new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000);
+        
+        allSprinklers.push({
+          id: sprinklerCounter++,
+          name: `Sprinkler ${sprinklerCounter - 1}`,
+          landId: land.id,
+          landName: land.name,
+          moisture: currentMoisture,
+          requiredMoisture: 65 + Math.floor(Math.random() * 20), // 65-85%
+          status: getStatus(currentMoisture),
+          isActive: Math.random() > 0.5,
+          cropType: land.cropType,
+          lastWatered: lastWatered.toISOString(),
+          waterFlowRate: (2.5 + Math.random() * 2.5).toFixed(1), // 2.5-5.0 L/min
+          soilTemperature: (20 + Math.random() * 15).toFixed(1), // 20-35°C
+          soilPH: (6.0 + Math.random() * 2.0).toFixed(1), // 6.0-8.0 pH
+          nutrientLevel: Math.floor(Math.random() * 100), // 0-100%
+          systemPressure: (1.5 + Math.random() * 1.0).toFixed(1), // 1.5-2.5 bar
+          coverage: `${Math.floor(Math.random() * 20) + 10} sq.m`, // 10-30 sq.m
+          waterUsedToday: (Math.random() * 50 + 20).toFixed(1), // 20-70 liters
+          nextScheduled: getNextScheduledTime(),
+          deviceId: `SPX-${String(sprinklerCounter - 1).padStart(3, '0')}`
+        });
+      }
     });
 
-    setSprinklers(newSprinklers);
+    setSprinklers(allSprinklers);
   };
 
   const getStatus = (moisture) => {
@@ -128,12 +192,47 @@ export const FarmProvider = ({ children }) => {
   };
 
   const addRandomAlert = () => {
-    const messages = [
-      'Moisture sensor reading updated',
-      'Weekly system maintenance completed', 
-      'Weather forecast: Light rain expected',
-      'Soil temperature optimal for growth',
-      'Irrigation schedule optimized'
+    const alertTypes = [
+      {
+        message: 'Sprinkler fault detected - requires maintenance',
+        type: 'warning'
+      },
+      {
+        message: 'Solar panel dust accumulation affecting efficiency',
+        type: 'warning'
+      },
+      {
+        message: 'Flood risk alert - heavy rainfall detected nearby',
+        type: 'critical'
+      },
+      {
+        message: 'Low water pressure in irrigation system',
+        type: 'warning'
+      },
+      {
+        message: 'Moisture sensor calibration successful',
+        type: 'success'
+      },
+      {
+        message: 'Weekly system health check completed',
+        type: 'success'
+      },
+      {
+        message: 'Weather forecast: Optimal growing conditions',
+        type: 'info'
+      },
+      {
+        message: 'Fertilizer levels optimal across all lands',
+        type: 'info'
+      },
+      {
+        message: 'Power outage detected - backup systems active',
+        type: 'warning'
+      },
+      {
+        message: 'Crop growth milestone reached in Main Land',
+        type: 'success'
+      }
     ];
 
     const now = new Date();
@@ -143,11 +242,12 @@ export const FarmProvider = ({ children }) => {
       hour12: true 
     });
 
+    const selectedAlert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
     const randomAlert = {
       id: Date.now(),
-      message: messages[Math.floor(Math.random() * messages.length)],
+      message: selectedAlert.message,
       time: timeString,
-      type: Math.random() > 0.7 ? 'warning' : 'info'
+      type: selectedAlert.type
     };
 
     addAlert(randomAlert);
@@ -180,34 +280,32 @@ export const FarmProvider = ({ children }) => {
 
   // Get lands data for dashboard
   const getLands = () => {
-    const lands = [];
-    const landIds = [...new Set(sprinklers.map(s => s.landId))];
-    
-    landIds.forEach(landId => {
-      const landSprinklers = sprinklers.filter(s => s.landId === landId);
+    return lands.map(land => {
+      const landSprinklers = sprinklers.filter(s => s.landId === land.id);
       const activeSprinklers = landSprinklers.filter(s => s.isActive).length;
-      const avgMoisture = Math.round(landSprinklers.reduce((sum, s) => sum + s.moisture, 0) / landSprinklers.length);
+      const avgMoisture = landSprinklers.length > 0 
+        ? Math.round(landSprinklers.reduce((sum, s) => sum + s.moisture, 0) / landSprinklers.length)
+        : 0;
       const criticalSprinklers = landSprinklers.filter(s => s.status === 'critical').length;
       
-      lands.push({
-        id: landId,
-        name: `Land ${landId}`,
+      return {
+        ...land,
         sprinklerCount: landSprinklers.length,
         activeSprinklers: activeSprinklers,
-        avgMoisture: avgMoisture || 0,
+        avgMoisture: avgMoisture,
         criticalSprinklers: criticalSprinklers,
         status: criticalSprinklers > 0 ? 'critical' : avgMoisture < 40 ? 'dry' : 'good'
-      });
+      };
     });
-    
-    return lands;
   };
 
   const value = {
     farmData,
+    lands,
     sprinklers,
     alerts,
     saveFarmData,
+    addLand,
     toggleSprinkler,
     getStatusColor,
     updateMoistureLevels,

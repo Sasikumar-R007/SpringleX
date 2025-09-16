@@ -13,14 +13,24 @@ import {
   Edit3,
   Bell,
   ChevronRight,
-  Activity
+  Activity,
+  Plus
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { farmData, sprinklers, alerts, getLands, getStatusColor, updateMoistureLevels } = useFarm();
+  const { farmData, sprinklers, alerts, getLands, getStatusColor, updateMoistureLevels, addLand } = useFarm();
   const navigate = useNavigate();
   const [language, setLanguage] = useState(localStorage.getItem('sprinkleX_language') || 'en');
+  const [showAddLandModal, setShowAddLandModal] = useState(false);
+  const [newLandData, setNewLandData] = useState({
+    name: '',
+    landSize: '',
+    landUnit: 'acres',
+    cropType: '',
+    soilType: '',
+    cropCount: ''
+  });
   
   // Get lands data
   const lands = getLands();
@@ -33,6 +43,7 @@ const Dashboard = () => {
       lands: 'My Lands',
       recentAlerts: 'Recent Alerts',
       editFarmDetails: 'Edit Farm Details',
+      addLand: 'Add New Land',
       moisture: 'Moisture',
       status: 'Status',
       control: 'Control',
@@ -50,6 +61,7 @@ const Dashboard = () => {
       lands: 'என் நிலங்கள்',
       recentAlerts: 'சமீபத்திய எச்சரிக்கைகள்',
       editFarmDetails: 'பண்ணை விவரங்களைத் திருத்து',
+      addLand: 'புதிய நிலத்தைச் சேர்க்கவும்',
       moisture: 'ஈரப்பதம்',
       status: 'நிலை',
       control: 'கட்டுப்பாடு',
@@ -104,10 +116,35 @@ const Dashboard = () => {
   const getAlertIcon = (type) => {
     switch (type) {
       case 'warning': return <AlertTriangle size={16} className="text-yellow-500" />;
+      case 'critical': return <AlertTriangle size={16} className="text-red-500" />;
       case 'success': return <Droplet size={16} className="text-green-500" />;
       default: return <Bell size={16} className="text-blue-500" />;
     }
   };
+
+  const handleAddLand = () => {
+    if (newLandData.name && newLandData.landSize && newLandData.cropType && newLandData.soilType && newLandData.cropCount) {
+      addLand(newLandData);
+      setNewLandData({
+        name: '',
+        landSize: '',
+        landUnit: 'acres',
+        cropType: '',
+        soilType: '',
+        cropCount: ''
+      });
+      setShowAddLandModal(false);
+    }
+  };
+
+  const cropOptions = [
+    'Rice', 'Wheat', 'Sugarcane', 'Corn', 'Tomato', 'Potato', 
+    'Cotton', 'Soybean', 'Groundnut', 'Onion', 'Other'
+  ];
+
+  const soilOptions = [
+    'Clay', 'Loam', 'Sandy', 'Silt', 'Rocky', 'Mixed'
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-8">
@@ -165,13 +202,22 @@ const Dashboard = () => {
           <h2 className="text-2xl font-bold text-gray-900">
             {getText('lands')}
           </h2>
-          <button
-            onClick={updateMoistureLevels}
-            className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <RefreshCw size={16} className="mr-2" />
-            {getText('refresh')}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowAddLandModal(true)}
+              className="flex items-center px-4 py-2 bg-sprinkle-green hover:bg-green-600 text-white rounded-lg transition-colors"
+            >
+              <Plus size={16} className="mr-2" />
+              {getText('addLand')}
+            </button>
+            <button
+              onClick={updateMoistureLevels}
+              className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <RefreshCw size={16} className="mr-2" />
+              {getText('refresh')}
+            </button>
+          </div>
         </motion.div>
 
         {/* Lands Grid */}
@@ -290,6 +336,140 @@ const Dashboard = () => {
             </p>
           )}
         </motion.div>
+
+        {/* Add Land Modal */}
+        {showAddLandModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-sprinkle-dark">Add New Land</h2>
+                <button
+                  onClick={() => setShowAddLandModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Land Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Land Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newLandData.name}
+                    onChange={(e) => setNewLandData({...newLandData, name: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                    placeholder="Enter land name"
+                  />
+                </div>
+
+                {/* Land Size */}
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Land Size
+                    </label>
+                    <input
+                      type="number"
+                      value={newLandData.landSize}
+                      onChange={(e) => setNewLandData({...newLandData, landSize: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                      placeholder="Enter size"
+                      min="0.1"
+                      step="0.1"
+                    />
+                  </div>
+                  <div className="w-32">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Unit
+                    </label>
+                    <select
+                      value={newLandData.landUnit}
+                      onChange={(e) => setNewLandData({...newLandData, landUnit: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                    >
+                      <option value="acres">Acres</option>
+                      <option value="hectares">Hectares</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Crop Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Crop Type
+                  </label>
+                  <select
+                    value={newLandData.cropType}
+                    onChange={(e) => setNewLandData({...newLandData, cropType: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                  >
+                    <option value="">Select crop type</option>
+                    {cropOptions.map((crop) => (
+                      <option key={crop} value={crop}>{crop}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Soil Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Soil Type
+                  </label>
+                  <select
+                    value={newLandData.soilType}
+                    onChange={(e) => setNewLandData({...newLandData, soilType: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                  >
+                    <option value="">Select soil type</option>
+                    {soilOptions.map((soil) => (
+                      <option key={soil} value={soil}>{soil}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Crop Count */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Crops
+                  </label>
+                  <input
+                    type="number"
+                    value={newLandData.cropCount}
+                    onChange={(e) => setNewLandData({...newLandData, cropCount: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sprinkle-green focus:border-sprinkle-green"
+                    placeholder="Enter number of crops"
+                    min="1"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={() => setShowAddLandModal(false)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddLand}
+                    disabled={!newLandData.name || !newLandData.landSize || !newLandData.cropType || !newLandData.soilType || !newLandData.cropCount}
+                    className="flex-1 px-6 py-3 bg-sprinkle-green hover:bg-green-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                  >
+                    Add Land
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
       </div>
     </div>
