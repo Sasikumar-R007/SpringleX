@@ -105,6 +105,28 @@ export const FarmProvider = ({ children }) => {
     return newLand;
   };
 
+  const deleteLand = (landId) => {
+    // Remove land from lands array
+    const updatedLands = lands.filter(land => land.id !== landId);
+    setLands(updatedLands);
+    localStorage.setItem('sprinkleX_lands', JSON.stringify(updatedLands));
+    
+    // Remove all sprinklers associated with this land
+    const updatedSprinklers = sprinklers.filter(sprinkler => sprinkler.landId !== landId);
+    setSprinklers(updatedSprinklers);
+    
+    // Add an alert about the land deletion
+    const deleteAlert = {
+      id: Date.now(),
+      message: `Land ${landId} has been deleted successfully`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      type: 'info'
+    };
+    setAlerts(prev => [deleteAlert, ...prev.slice(0, 9)]); // Keep only last 10 alerts
+    
+    return updatedLands;
+  };
+
   const generateSprinklersForLands = (landsData) => {
     if (!landsData || landsData.length === 0) return;
 
@@ -306,6 +328,7 @@ export const FarmProvider = ({ children }) => {
     alerts,
     saveFarmData,
     addLand,
+    deleteLand,
     toggleSprinkler,
     getStatusColor,
     updateMoistureLevels,

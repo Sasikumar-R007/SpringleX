@@ -14,15 +14,19 @@ import {
   Bell,
   ChevronRight,
   Activity,
-  Plus
+  Plus,
+  Trash2,
+  X
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { farmData, sprinklers, alerts, getLands, getStatusColor, updateMoistureLevels, addLand } = useFarm();
+  const { farmData, sprinklers, alerts, getLands, getStatusColor, updateMoistureLevels, addLand, deleteLand } = useFarm();
   const navigate = useNavigate();
   const [language, setLanguage] = useState(localStorage.getItem('sprinkleX_language') || 'en');
   const [showAddLandModal, setShowAddLandModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [landToDelete, setLandToDelete] = useState(null);
   const [newLandData, setNewLandData] = useState({
     name: '',
     landSize: '',
@@ -44,6 +48,7 @@ const Dashboard = () => {
       recentAlerts: 'Recent Alerts',
       editFarmDetails: 'Edit Farm Details',
       addLand: 'Add New Land',
+      deleteLand: 'Delete Land',
       moisture: 'Moisture',
       status: 'Status',
       control: 'Control',
@@ -53,7 +58,11 @@ const Dashboard = () => {
       on: 'ON',
       off: 'OFF',
       refresh: 'Refresh Data',
-      noAlerts: 'No recent alerts'
+      noAlerts: 'No recent alerts',
+      confirmDelete: 'Confirm Deletion',
+      deleteWarning: 'Are you sure you want to delete this land? This action will permanently remove the land and all its associated sprinklers. This cannot be undone.',
+      cancel: 'Cancel',
+      confirmDeleteButton: 'Yes, Delete Land'
     },
     ta: {
       welcome: 'மீண்டும் வருக',
@@ -62,6 +71,7 @@ const Dashboard = () => {
       recentAlerts: 'சமீபத்திய எச்சரிக்கைகள்',
       editFarmDetails: 'பண்ணை விவரங்களைத் திருத்து',
       addLand: 'புதிய நிலத்தைச் சேர்க்கவும்',
+      deleteLand: 'நிலத்தை நீக்கு',
       moisture: 'ஈரப்பதம்',
       status: 'நிலை',
       control: 'கட்டுப்பாடு',
@@ -71,7 +81,11 @@ const Dashboard = () => {
       on: 'இயங்கும்',
       off: 'நிறுத்து',
       refresh: 'தரவை புதுப்பிக்கவும்',
-      noAlerts: 'சமீபத்திய எச்சரிக்கைகள் இல்லை'
+      noAlerts: 'சமீபத்திய எச்சரிக்கைகள் இல்லை',
+      confirmDelete: 'நீக்குதலை உறுதிப்படுத்து',
+      deleteWarning: 'இந்த நிலத்தை நீக்க விரும்புகிறீர்களா? இந்த செயல் நிலம் மற்றும் அதனுடன் தொடர்புடைய அனைத்து ஸ்பிரிங்க்லர்களையும் நிரந்தரமாக அகற்றும். இதை மாற்ற முடியாது.',
+      cancel: 'ரத்து செய்',
+      confirmDeleteButton: 'ஆம், நிலத்தை நீக்கு'
     }
   };
 
@@ -135,6 +149,25 @@ const Dashboard = () => {
       });
       setShowAddLandModal(false);
     }
+  };
+
+  const handleDeleteLand = (land, e) => {
+    e.stopPropagation(); // Prevent card click when delete button is clicked
+    setLandToDelete(land);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteLand = () => {
+    if (landToDelete) {
+      deleteLand(landToDelete.id);
+      setShowDeleteModal(false);
+      setLandToDelete(null);
+    }
+  };
+
+  const cancelDeleteLand = () => {
+    setShowDeleteModal(false);
+    setLandToDelete(null);
   };
 
   const cropOptions = [
@@ -249,7 +282,16 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                <div className={`w-4 h-4 rounded-full ${getStatusColor(land.status)}`} />
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full ${getStatusColor(land.status)}`} />
+                  <button
+                    onClick={(e) => handleDeleteLand(land, e)}
+                    className="p-2 text-sprinkle-gray hover:text-accent-red hover:bg-red-50 rounded-lg smooth-transition opacity-60 hover:opacity-100"
+                    title={getText('deleteLand')}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* Land Statistics */}
@@ -464,6 +506,50 @@ const Dashboard = () => {
                     className="flex-1 px-6 py-3 bg-sprinkle-green hover:bg-green-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
                   >
                     Add Land
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Delete Land Confirmation Modal */}
+        {showDeleteModal && landToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-strong"
+            >
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                  <Trash2 className="h-8 w-8 text-accent-red" />
+                </div>
+                
+                <h3 className="text-xl font-bold text-sprinkle-dark mb-4">
+                  {getText('confirmDelete')}
+                </h3>
+                
+                <p className="text-sprinkle-gray mb-2 text-sm">
+                  <strong>{landToDelete.name}</strong>
+                </p>
+                
+                <p className="text-sprinkle-gray mb-8 leading-relaxed">
+                  {getText('deleteWarning')}
+                </p>
+                
+                <div className="flex space-x-4">
+                  <button
+                    onClick={cancelDeleteLand}
+                    className="flex-1 px-6 py-3 border border-sprinkle-gray-medium text-sprinkle-gray rounded-xl hover:bg-sprinkle-gray-light smooth-transition font-medium"
+                  >
+                    {getText('cancel')}
+                  </button>
+                  <button
+                    onClick={confirmDeleteLand}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-red to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 smooth-transition font-medium shadow-soft hover:shadow-medium"
+                  >
+                    {getText('confirmDeleteButton')}
                   </button>
                 </div>
               </div>
