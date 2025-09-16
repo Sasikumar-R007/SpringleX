@@ -1,9 +1,18 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   const handleGetStarted = () => {
-    document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
   };
 
   return (
@@ -41,7 +50,7 @@ const Hero = () => {
             onClick={handleGetStarted}
             className="bg-sprinkle-green hover:bg-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Get Started
+            {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
           </motion.button>
         </motion.div>
         
