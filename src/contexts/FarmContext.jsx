@@ -267,6 +267,10 @@ export const FarmProvider = ({ children }) => {
     setAlerts(prevAlerts => [alert, ...prevAlerts.slice(0, 9)]);
   };
 
+  const dismissAlert = (alertId) => {
+    setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== alertId));
+  };
+
   const addRandomAlert = () => {
     const alertTypes = [
       {
@@ -389,6 +393,7 @@ export const FarmProvider = ({ children }) => {
     getStatusColor,
     updateMoistureLevels,
     addAlert,
+    dismissAlert,
     getLands
   };
 

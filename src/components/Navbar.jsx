@@ -7,8 +7,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [swipeStates, setSwipeStates] = useState({});
   const { user, isAuthenticated, logout } = useAuth();
-  const { alerts } = useFarm();
+  const { alerts, dismissAlert } = useFarm();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -53,6 +54,82 @@ const Navbar = () => {
       case 'info': return <Info size={16} className="text-blue-500" />;
       default: return <Bell size={16} className="text-gray-500" />;
     }
+  };
+
+  // Swipe handling functions
+  const handleTouchStart = (e, alertId) => {
+    const touch = e.touches[0];
+    setSwipeStates(prev => ({
+      ...prev,
+      [alertId]: {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        currentX: touch.clientX,
+        isDragging: false,
+        startTime: Date.now()
+      }
+    }));
+  };
+
+  const handleTouchMove = (e, alertId) => {
+    const touch = e.touches[0];
+    const state = swipeStates[alertId];
+    
+    if (!state) return;
+
+    const deltaX = touch.clientX - state.startX;
+    const deltaY = Math.abs(touch.clientY - state.startY);
+    
+    // Only trigger horizontal swipe if the movement is more horizontal than vertical
+    if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
+      e.preventDefault(); // Only prevent scrolling for horizontal gestures
+      setSwipeStates(prev => ({
+        ...prev,
+        [alertId]: {
+          ...state,
+          currentX: touch.clientX,
+          isDragging: true
+        }
+      }));
+    }
+  };
+
+  const handleTouchEnd = (e, alertId) => {
+    const state = swipeStates[alertId];
+    
+    if (!state) return;
+
+    const deltaX = state.currentX - state.startX;
+    const timeDelta = Math.max(50, Date.now() - state.startTime); // Prevent division by near-zero
+    const velocity = Math.abs(deltaX) / timeDelta;
+    
+    // Dismiss if swiped far enough (>100px) or fast enough with minimum distance (>30px && >0.5px/ms)
+    if (Math.abs(deltaX) > 100 || (Math.abs(deltaX) > 30 && velocity > 0.5)) {
+      dismissAlert(alertId);
+    }
+    
+    // Clear swipe state
+    setSwipeStates(prev => {
+      const newState = { ...prev };
+      delete newState[alertId];
+      return newState;
+    });
+  };
+
+  const getSwipeTransform = (alertId) => {
+    const state = swipeStates[alertId];
+    if (!state || !state.isDragging) return 'translateX(0)';
+    
+    const deltaX = state.currentX - state.startX;
+    return `translateX(${deltaX}px)`;
+  };
+
+  const getSwipeOpacity = (alertId) => {
+    const state = swipeStates[alertId];
+    if (!state || !state.isDragging) return 1;
+    
+    const deltaX = Math.abs(state.currentX - state.startX);
+    return Math.max(0.3, 1 - deltaX / 200);
   };
 
   return (
@@ -128,15 +205,38 @@ const Navbar = () => {
                           alerts.slice(0, 10).map((alert) => (
                             <div
                               key={alert.id}
-                              className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                              className="relative overflow-hidden"
                             >
-                              <div className="flex items-start">
-                                <div className="mr-3 mt-1">
-                                  {getAlertIcon(alert.type)}
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm text-gray-900">{alert.message}</p>
-                                  <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                              <div
+                                className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-all duration-200 select-none cursor-pointer"
+                                style={{
+                                  transform: getSwipeTransform(alert.id),
+                                  opacity: getSwipeOpacity(alert.id),
+                                  touchAction: 'pan-y'
+                                }}
+                                onTouchStart={(e) => handleTouchStart(e, alert.id)}
+                                onTouchMove={(e) => handleTouchMove(e, alert.id)}
+                                onTouchEnd={(e) => handleTouchEnd(e, alert.id)}
+                                title="Swipe to dismiss"
+                              >
+                                <div className="flex items-start">
+                                  <div className="mr-3 mt-1">
+                                    {getAlertIcon(alert.type)}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm text-gray-900">{alert.message}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                                  </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      dismissAlert(alert.id);
+                                    }}
+                                    className="ml-2 p-1 hover:bg-gray-200 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+                                    title="Dismiss notification"
+                                  >
+                                    <X size={14} className="text-gray-500" />
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -218,15 +318,38 @@ const Navbar = () => {
                 alerts.slice(0, 10).map((alert) => (
                   <div
                     key={alert.id}
-                    className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    className="relative overflow-hidden"
                   >
-                    <div className="flex items-start">
-                      <div className="mr-3 mt-1">
-                        {getAlertIcon(alert.type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">{alert.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                    <div
+                      className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-all duration-200 select-none cursor-pointer"
+                      style={{
+                        transform: getSwipeTransform(alert.id),
+                        opacity: getSwipeOpacity(alert.id),
+                        touchAction: 'pan-y'
+                      }}
+                      onTouchStart={(e) => handleTouchStart(e, alert.id)}
+                      onTouchMove={(e) => handleTouchMove(e, alert.id)}
+                      onTouchEnd={(e) => handleTouchEnd(e, alert.id)}
+                      title="Swipe to dismiss"
+                    >
+                      <div className="flex items-start">
+                        <div className="mr-3 mt-1">
+                          {getAlertIcon(alert.type)}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">{alert.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dismissAlert(alert.id);
+                          }}
+                          className="ml-2 p-1 hover:bg-gray-200 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+                          title="Dismiss notification"
+                        >
+                          <X size={14} className="text-gray-500" />
+                        </button>
                       </div>
                     </div>
                   </div>
