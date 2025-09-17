@@ -11,7 +11,7 @@ const port = 3001; // Different port from frontend (5000)
 
 // Enable CORS for the frontend
 app.use(cors({
-  origin: ['http://localhost:5000', 'https://*.replit.dev', 'https://*.replit.co'],
+  origin: true,
   credentials: true
 }));
 
@@ -64,7 +64,7 @@ app.get('/api/esp8266/toggle', async (req, res) => {
       success: false,
       message: errorMessage,
       error: error.message,
-      helpText: 'Note: This proxy server must be running on the same machine connected to the ESP8266\'s WiFi network (ESP8266-Network).'
+      helpText: 'Note: This proxy server must be running on the same machine connected to the ESP8266\'s WiFi network (ESP8266-Lane).'
     });
   }
 });

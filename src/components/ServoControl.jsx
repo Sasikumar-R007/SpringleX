@@ -3,14 +3,21 @@ function ServoControl() {
     try {
       const response = await fetch("/api/esp8266/toggle");
       
-      // Always try to parse JSON response, regardless of status code
-      const data = await response.json();
+      let data;
+      try {
+        // Try to parse JSON response
+        data = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, fall back to direct mode
+        console.log("Proxy unavailable, trying direct ESP8266 connection...");
+        return directToggle();
+      }
       
       if (response.ok && data.success) {
         console.log("ESP Response:", data.espResponse);
         alert("✅ " + data.message);
       } else {
-        // Handle both HTTP errors and ESP connection errors
+        // Handle ESP connection errors from backend
         console.error("ESP Error:", data.error || 'Unknown error');
         alert("⚠️ " + (data.message || 'ESP8266 connection failed'));
         if (data.helpText) {
@@ -18,8 +25,38 @@ function ServoControl() {
         }
       }
     } catch (error) {
-      alert("⚠️ Could not reach proxy server. Check that backend is running.");
-      console.error("Connection error:", error);
+      // Proxy completely unreachable - try direct mode
+      console.log("Backend proxy unreachable, switching to direct mode...");
+      return directToggle();
+    }
+  };
+
+  const directToggle = () => {
+    // Open ESP8266 directly in a new tab when connected to ESP8266-Lane WiFi
+    const espUrl = "http://192.168.4.1/toggle";
+    
+    alert("🔗 Opening ESP8266 directly. Make sure you're connected to ESP8266-Lane WiFi!");
+    
+    // Try to open in new tab
+    const newWindow = window.open(espUrl, '_blank');
+    
+    if (!newWindow) {
+      // If popup blocked, give user a link
+      const userConfirm = confirm(
+        "Popup blocked. Click OK to navigate to ESP8266 directly, or Cancel to copy the link."
+      );
+      
+      if (userConfirm) {
+        window.location.href = espUrl;
+      } else {
+        // Copy to clipboard if available
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(espUrl);
+          alert("Link copied to clipboard: " + espUrl);
+        } else {
+          alert("ESP8266 URL: " + espUrl);
+        }
+      }
     }
   };
 
