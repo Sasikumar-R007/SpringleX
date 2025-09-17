@@ -20,6 +20,7 @@ import {
   X
 } from 'lucide-react';
 import ServoControl from '../components/ServoControl';
+import ESP8266SensorData from '../components/ESP8266SensorData';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -341,6 +342,16 @@ const Dashboard = () => {
               </div>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* ESP8266 Sensor Data */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="mb-6"
+        >
+          <ESP8266SensorData />
         </motion.div>
 
         {/* Control Panels and Recent Alerts */}

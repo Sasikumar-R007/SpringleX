@@ -17,6 +17,62 @@ app.use(cors({
 
 app.use(express.json());
 
+// Proxy endpoint for ESP8266 data
+app.get('/api/esp8266/data', async (req, res) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+  
+  // Use configurable ESP8266 URL - fallback to default
+  const deviceUrl = process.env.ESP8266_BASE_URL || req.query.deviceUrl || 'http://192.168.4.1';
+  const dataUrl = `${deviceUrl}/data`;
+  
+  try {
+    console.log(`Fetching sensor data from ESP8266 at ${dataUrl}...`);
+    
+    // Make HTTP request to ESP8266 /data endpoint
+    const response = await fetch(dataUrl, {
+      method: 'GET',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`ESP8266 responded with status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('ESP8266 Sensor Data:', data);
+    
+    res.json({
+      success: true,
+      data: data,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error('ESP8266 data fetch error:', error);
+    
+    let errorMessage = 'Could not fetch sensor data from ESP8266.';
+    
+    if (error.name === 'AbortError') {
+      errorMessage += ' Connection timed out after 5 seconds.';
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || error.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      errorMessage += ' Network unreachable. Make sure you are connected to ESP8266-Lane WiFi and the ESP8266 is powered on.';
+    } else {
+      errorMessage += ` Error: ${error.message}`;
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: errorMessage,
+      error: error.message,
+      helpText: 'Note: This proxy server must be running on the same machine connected to the ESP8266\'s WiFi network (ESP8266-Lane).'
+    });
+  }
+});
+
 // Proxy endpoint for ESP8266 toggle
 app.get('/api/esp8266/toggle', async (req, res) => {
   const controller = new AbortController();

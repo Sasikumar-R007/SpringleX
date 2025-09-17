@@ -1,0 +1,156 @@
+ESP8266 Code (Serve Data Over HTTP)
+
+Modify your existing ESP8266 code so that it serves the sensor values through a simple HTTP endpoint (/data):
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <Servo.h>
+#include <Adafruit_NeoPixel.h>
+
+// === WiFi ===
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// === Web Server ===
+ESP8266WebServer server(80);
+
+// === Soil Sensors ===
+const int S1 = D1;
+const int S2 = D2;
+const int S3 = D5;
+
+// === Servo ===
+const int SERVO_PIN = D4;
+Servo valveServo;
+
+// === NeoPixels ===
+#define LED_PIN D6
+#define NUM_LEDS 3
+Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+bool valveOpen = false;
+
+void handleData() {
+  int d1 = digitalRead(S1);
+  int d2 = digitalRead(S2);
+  int d3 = digitalRead(S3);
+
+  String json = "{";
+  json += "\"deep1\":\"" + String(d1 == LOW ? "WET" : "DRY") + "\",";
+  json += "\"deep2\":\"" + String(d2 == LOW ? "WET" : "DRY") + "\",";
+  json += "\"deep3\":\"" + String(d3 == LOW ? "WET" : "DRY") + "\",";
+  json += "\"valve\":\"" + String(valveOpen ? "OPEN" : "CLOSED") + "\"";
+  json += "}";
+
+  server.send(200, "application/json", json);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(S1, INPUT);
+  pinMode(S2, INPUT);
+  pinMode(S3, INPUT);
+
+  valveServo.attach(SERVO_PIN);
+  valveServo.write(0);
+
+  leds.begin();
+  leds.show();
+
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  // Define server route
+  server.on("/data", handleData);
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
+
+  int d1 = digitalRead(S1);
+  int d2 = digitalRead(S2);
+  int d3 = digitalRead(S3);
+
+  leds.setPixelColor(0, d1 == LOW ? leds.Color(0, 150, 0) : leds.Color(150, 0, 0));
+  leds.setPixelColor(1, d2 == LOW ? leds.Color(0, 150, 0) : leds.Color(150, 0, 0));
+  leds.setPixelColor(2, d3 == LOW ? leds.Color(0, 150, 0) : leds.Color(150, 0, 0));
+  leds.show();
+
+  if (d1 == HIGH || d2 == HIGH || d3 == HIGH) {
+    if (!valveOpen) {
+      valveServo.write(180);
+      valveOpen = true;
+    }
+  } else {
+    if (valveOpen) {
+      valveServo.write(0);
+      valveOpen = false;
+    }
+  }
+
+  delay(2000);
+}
+
+
+✅ Now, visiting http://<ESP_IP>/data will give JSON like:
+
+{
+  "deep1": "WET",
+  "deep2": "DRY",
+  "deep3": "WET",
+  "valve": "OPEN"
+}
+
+2️⃣ React Website (Replit) - Fetch & Display Data
+
+In your App.jsx (React) add this code:
+
+import { useEffect, useState } from "react";
+
+export default function App() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("http://<ESP_IP>/data"); // Replace <ESP_IP>
+        const json = await res.json();
+        setData(json);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 2000); // refresh every 2s
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ fontFamily: "monospace", padding: "20px" }}>
+      <h1>🌱 Soil Moisture Monitor</h1>
+      {data ? (
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      ) : (
+        <p>Loading data...</p>
+      )}
+    </div>
+  );
+}
+
+3️⃣ Replit Prompt for You
+
+Here’s your direct Replit AI prompt to set up everything:
+
+Prompt:
+"Set up a React app that fetches live sensor data from my ESP8266's /data endpoint every 2 seconds and displays it like a terminal. Use fetch() inside useEffect, store the data in state, and render it inside a <pre> block with monospace font. If the data is not available, show 'Loading data...' message."

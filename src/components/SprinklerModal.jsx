@@ -14,7 +14,7 @@ import {
   Settings,
   ShieldAlert
 } from 'lucide-react';
-import ESP8266MoistureSensor from './ESP8266MoistureSensor';
+import ESP8266SensorData from './ESP8266SensorData';
 
 const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle, onEmergencyStop, getText }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -230,7 +230,7 @@ const SprinklerModal = ({ sprinkler, isOpen, onClose, onToggle, onEmergencyStop,
                 )}
 
                 {activeTab === 'sensors' && (
-                  <ESP8266MoistureSensor />
+                  <ESP8266SensorData />
                 )}
 
                 {activeTab === 'schedule' && (
