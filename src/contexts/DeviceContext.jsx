@@ -31,13 +31,22 @@ class DeviceClient {
 
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      
+      // Only set Content-Type header when actually sending JSON data
+      // This avoids CORS preflights for simple GET requests
+      const headers = {
+        ...(this.token && { 'Authorization': `Bearer ${this.token}` }),
+        ...options.headers,
+      };
+      
+      // Add Content-Type only if we're sending a JSON body
+      if (options.body && typeof options.body === 'string') {
+        headers['Content-Type'] = 'application/json';
+      }
+      
       const response = await fetch(url, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(this.token && { 'Authorization': `Bearer ${this.token}` }),
-          ...options.headers,
-        },
+        headers,
         signal: controller.signal,
       });
 
@@ -47,7 +56,13 @@ class DeviceClient {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return await response.json();
+      // Try to parse as JSON, but fall back to text if needed
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        const text = await response.text();
+        return { _rawText: text, _isPlainText: true };
+      }
     } catch (error) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
@@ -59,32 +74,136 @@ class DeviceClient {
 
   async ping() {
     try {
-      const result = await this.fetch('/.well-known/sprinklex');
-      return result.deviceId ? true : false;
+      // Just check if we can reach the device with any successful response
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+      
+      const url = `${this.baseUrl}/status`;
+      
+      // Use minimal headers to avoid CORS preflight - no Content-Type needed for GET
+      const headers = {};
+      if (this.token) {
+        headers['Authorization'] = `Bearer ${this.token}`;
+      }
+      
+      const response = await fetch(url, {
+        headers,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // Any successful response means device is online
+      return response.ok;
     } catch (error) {
       return false;
     }
   }
 
   async getDeviceInfo() {
-    return await this.fetch('/device-info');
+    const status = await this.fetch('/status');
+    
+    // Handle both JSON and plain text responses
+    if (status._isPlainText) {
+      return {
+        deviceId: 'ESP8266-Servo',
+        name: 'ESP8266 Servo Controller',
+        ip: this.baseUrl.replace('http://', '').replace('https://', ''),
+        wifi: 'Unknown',
+        uptime: 'Unknown',
+        rawResponse: status._rawText,
+        availableSources: DEFAULT_WATER_SOURCES
+      };
+    }
+    
+    // Flexible field mapping for different ESP8266 response formats
+    return {
+      deviceId: status.deviceId || status.device_id || 'ESP8266-Servo',
+      name: status.name || status.deviceName || 'ESP8266 Servo Controller',
+      ip: status.ip || status.IP || status.address || this.baseUrl.replace('http://', '').replace('https://', ''),
+      wifi: status.wifi || status.ssid || status.network || 'Connected',
+      uptime: status.uptime || status.upTime || status.runtime || 0,
+      availableSources: DEFAULT_WATER_SOURCES
+    };
   }
 
   async getState() {
-    return await this.fetch('/state');
+    const status = await this.fetch('/status');
+    
+    // Handle both JSON and plain text responses
+    if (status._isPlainText) {
+      // Try to extract angle from plain text if possible
+      const angleMatch = status._rawText.match(/angle[:\s]*(\d+)/i);
+      const currentAngle = angleMatch ? parseInt(angleMatch[1]) : 0;
+      const currentSource = this.findSourceByAngle(currentAngle);
+      
+      return {
+        currentSource: currentSource?.id || null,
+        currentAngle: currentAngle,
+        status: 'connected'
+      };
+    }
+    
+    // Flexible field mapping for different ESP8266 response formats
+    const currentAngle = status.currentAngle || status.current_angle || status.angle || status.position || 0;
+    const currentSource = this.findSourceByAngle(currentAngle);
+    
+    return {
+      currentSource: currentSource?.id || null,
+      currentAngle: currentAngle,
+      status: status.status || status.state || 'connected'
+    };
   }
 
   async setWaterSource(sourceId) {
-    return await this.fetch('/source', {
-      method: 'POST',
-      body: JSON.stringify({ sourceId }),
-    });
+    const source = DEFAULT_WATER_SOURCES.find(s => s.id === sourceId);
+    if (!source) {
+      throw new Error(`Unknown water source: ${sourceId}`);
+    }
+    
+    const result = await this.fetch(`/rotate?angle=${source.servoPosition}`);
+    
+    // Handle both JSON and plain text responses
+    if (result._isPlainText) {
+      // For plain text responses, assume success if we got a response
+      return {
+        success: true,
+        angle: source.servoPosition,
+        sourceId: sourceId,
+        message: result._rawText || `Moved to ${source.name}`
+      };
+    }
+    
+    return {
+      success: result.success !== false, // Default to true unless explicitly false
+      angle: result.angle || result.position || source.servoPosition,
+      sourceId: sourceId,
+      message: result.message || result.msg || `Moved to ${source.name}`
+    };
   }
 
   async calibrateServo() {
-    return await this.fetch('/servo/calibrate', {
-      method: 'POST',
-    });
+    // Calibrate by moving through all positions
+    const results = [];
+    for (const source of DEFAULT_WATER_SOURCES) {
+      try {
+        const result = await this.fetch(`/rotate?angle=${source.servoPosition}`);
+        results.push({ position: source.servoPosition, success: result.success });
+        // Small delay between movements
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        results.push({ position: source.servoPosition, success: false, error: error.message });
+      }
+    }
+    return { success: true, calibrationResults: results };
+  }
+  
+  // Helper method to find water source by angle with tolerance
+  findSourceByAngle(angle) {
+    const tolerance = 10; // Allow 10-degree tolerance
+    return DEFAULT_WATER_SOURCES.find(source => 
+      Math.abs(source.servoPosition - angle) <= tolerance
+    );
   }
 }
 
