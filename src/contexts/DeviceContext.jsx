@@ -191,9 +191,9 @@ export const DeviceProvider = ({ children }) => {
     }
   }, [deviceClient]);
 
-  // Auto-discovery and connection monitoring
+  // Auto-discovery and connection monitoring (only on HTTP sites)
   useEffect(() => {
-    if (connectionStatus === 'unknown') {
+    if (connectionStatus === 'unknown' && window.location.protocol === 'http:') {
       discoverDevice();
     }
   }, [connectionStatus, discoverDevice]);
