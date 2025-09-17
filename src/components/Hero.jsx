@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ServoControl from './ServoControl';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ const Hero = () => {
               stiffness: 150,
               damping: 12
             }}
-            className="flex justify-center items-center"
+            className="flex justify-center items-center flex-col space-y-4"
           >
             <button
               onClick={handleGetStarted}
@@ -102,6 +103,20 @@ const Hero = () => {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-sprinkle-green-dark to-sprinkle-green opacity-0 group-hover:opacity-100 smooth-transition"></div>
             </button>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                delay: 1.8, 
+                duration: 0.6,
+                type: "spring",
+                stiffness: 120,
+                damping: 15
+              }}
+            >
+              <ServoControl />
+            </motion.div>
           </motion.div>
         </motion.div>
         
