@@ -19,6 +19,7 @@ import {
   Trash2,
   X
 } from 'lucide-react';
+import ServoControl from '../components/ServoControl';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -342,7 +343,7 @@ const Dashboard = () => {
           ))}
         </motion.div>
 
-        {/* Water Source Control and Recent Alerts */}
+        {/* Control Panels and Recent Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Water Source Control */}
           <motion.div
@@ -354,12 +355,22 @@ const Dashboard = () => {
             <WaterSourceSelector />
           </motion.div>
           
+          {/* ESP8266 Servo Control */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="lg:col-span-1"
+          >
+            <ServoControl />
+          </motion.div>
+          
           {/* Recent Alerts */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="lg:col-span-2"
+            className="lg:col-span-1"
           >
             <div className="bg-white rounded-xl p-6 shadow-sm h-full">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -367,7 +378,7 @@ const Dashboard = () => {
               </h2>
               {alerts.length > 0 ? (
                 <div className="space-y-3">
-                  {alerts.slice(0, 5).map((alert) => (
+                  {alerts.slice(0, 3).map((alert) => (
                     <motion.div
                       key={alert.id}
                       initial={{ opacity: 0, x: -20 }}
