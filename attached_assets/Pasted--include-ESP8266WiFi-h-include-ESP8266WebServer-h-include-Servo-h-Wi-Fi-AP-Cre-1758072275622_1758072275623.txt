@@ -1,0 +1,125 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <Servo.h>
+
+// ===== Wi-Fi AP Credentials =====
+const char* ssid = "OnePlus Nord CE 3 Lite 5G";   // Change if needed
+const char* password = "sasikumar";
+
+ESP8266WebServer server(80);
+Servo myServo;
+int currentAngle = 0;  // Track current servo position
+
+// ===== CORS Headers (CRITICAL for web browser communication) =====
+void setCORSHeaders() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+  server.sendHeader("Access-Control-Allow-Private-Network", "true");  // Required for HTTPS sites
+}
+
+// ===== Handle OPTIONS preflight requests =====
+void handlePreflight() {
+  setCORSHeaders();
+  server.send(200, "text/plain", "");
+}
+
+// ===== Handle /rotate Endpoint =====
+void handleRotate() {
+  setCORSHeaders();  // Add CORS headers
+  
+  if (server.hasArg("angle")) {
+    int angle = server.arg("angle").toInt();
+
+    // Clamp angle between 0° and 180° (servo safe range)
+    if (angle < 0) angle = 0;
+    if (angle > 180) angle = 180;
+
+    myServo.write(angle);
+    currentAngle = angle;  // Update current position
+    
+    // Return JSON response for better web compatibility
+    String response = "{\"success\":true,\"angle\":" + String(angle) + ",\"message\":\"Rotated to " + String(angle) + "°\"}";
+    server.send(200, "application/json", response);
+    
+    Serial.println("✅ Rotated servo to: " + String(angle) + "°");
+  } else {
+    String response = "{\"success\":false,\"error\":\"Angle parameter required\"}";
+    server.send(400, "application/json", response);
+  }
+}
+
+// ===== Handle /status Endpoint (for connection testing) =====
+void handleStatus() {
+  setCORSHeaders();
+  
+  String json = "{";
+  json += "\"status\":\"online\",";
+  json += "\"currentAngle\":" + String(currentAngle) + ",";
+  json += "\"wifi\":\"" + String(ssid) + "\",";
+  json += "\"ip\":\"" + WiFi.softAPIP().toString() + "\",";
+  json += "\"uptime\":" + String(millis()) + "";
+  json += "}";
+  
+  server.send(200, "application/json", json);
+  Serial.println("📊 Status requested - Current angle: " + String(currentAngle) + "°");
+}
+
+void handleRoot() {
+  setCORSHeaders();
+  server.send(200, "text/plain", "ESP8266 Servo Control Online ✅");
+}
+
+// ===== Handle all undefined routes with CORS =====
+void handleNotFound() {
+  setCORSHeaders();
+  // Handle any OPTIONS request that doesn't match specific routes
+  if (server.method() == HTTP_OPTIONS) {
+    server.send(200, "text/plain", "");
+  } else {
+    server.send(404, "text/plain", "❌ Endpoint not found");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // ===== Servo Setup =====
+  myServo.attach(D4);  // Connect servo signal to D4 (GPIO2)
+  myServo.write(0);    // Start at 0°
+  currentAngle = 0;
+
+  // ===== Wi-Fi AP Mode =====
+  WiFi.softAP(ssid, password);
+  Serial.println("\n📡 WiFi AP started");
+  Serial.print("🔗 Connect to: ");
+  Serial.println(ssid);
+  Serial.print("🔑 Password: ");
+  Serial.println(password);
+  Serial.print("🌐 ESP8266 IP Address: ");
+  Serial.println(WiFi.softAPIP());  // Usually 192.168.4.1
+
+  // ===== HTTP Routes =====
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/", HTTP_OPTIONS, handlePreflight);
+  
+  server.on("/rotate", HTTP_GET, handleRotate);
+  server.on("/rotate", HTTP_OPTIONS, handlePreflight);  // CRITICAL: Explicit preflight
+  
+  server.on("/status", HTTP_GET, handleStatus);
+  server.on("/status", HTTP_OPTIONS, handlePreflight);   // CRITICAL: Explicit preflight
+  
+  server.onNotFound(handleNotFound);  // Handles any other OPTIONS requests
+
+  // ===== Start Server =====
+  server.begin();
+  Serial.println("✅ HTTP Server started");
+  Serial.println("📍 Available endpoints:");
+  Serial.println("   GET /status - Device status");
+  Serial.println("   GET /rotate?angle=X - Rotate servo");
+  Serial.println("   OPTIONS supported on all endpoints");
+}
+
+void loop() {
+  server.handleClient();
+}
