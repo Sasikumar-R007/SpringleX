@@ -54,8 +54,8 @@ app.get('/api/esp8266/toggle', async (req, res) => {
     
     if (error.name === 'AbortError') {
       errorMessage += ' Connection timed out after 5 seconds.';
-    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      errorMessage += ' Network unreachable. Make sure you are connected to ESP8266-Network WiFi and the ESP8266 is powered on.';
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || error.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      errorMessage += ' Network unreachable. Make sure you are connected to ESP8266-Lane WiFi and the ESP8266 is powered on.';
     } else {
       errorMessage += ` Error: ${error.message}`;
     }

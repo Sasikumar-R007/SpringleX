@@ -2,18 +2,24 @@ function ServoControl() {
   const toggleServo = async () => {
     try {
       const response = await fetch("/api/esp8266/toggle");
+      
+      // Always try to parse JSON response, regardless of status code
       const data = await response.json();
       
-      if (data.success) {
+      if (response.ok && data.success) {
         console.log("ESP Response:", data.espResponse);
         alert("✅ " + data.message);
       } else {
-        console.error("ESP Error:", data.error);
-        alert("⚠️ " + data.message);
+        // Handle both HTTP errors and ESP connection errors
+        console.error("ESP Error:", data.error || 'Unknown error');
+        alert("⚠️ " + (data.message || 'ESP8266 connection failed'));
+        if (data.helpText) {
+          console.log("Help:", data.helpText);
+        }
       }
     } catch (error) {
-      alert("⚠️ Could not reach proxy server. Check connection.");
-      console.error(error);
+      alert("⚠️ Could not reach proxy server. Check that backend is running.");
+      console.error("Connection error:", error);
     }
   };
 
