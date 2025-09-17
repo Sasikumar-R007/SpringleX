@@ -98,6 +98,9 @@ export default function ESP8266MoistureSensor() {
   }
 
   if (connectionStatus === 'error') {
+    const isHttpsBlocked = window.location.protocol === 'https:' && lastError?.includes('mixed content');
+    const httpUrl = window.location.href.replace('https://', 'http://');
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
@@ -105,41 +108,113 @@ export default function ESP8266MoistureSensor() {
             <Gauge className="w-5 h-5 mr-2 text-sprinkle-green" />
             ESP8266 Servo Control
           </h3>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          
+          {/* Main error alert */}
+          <div className={`border rounded-lg p-4 ${isHttpsBlocked ? 'bg-orange-50 border-orange-200' : 'bg-red-50 border-red-200'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-                <p className="text-red-700 font-medium">ESP8266 offline - Check device connection</p>
+                <AlertTriangle className={`w-5 h-5 mr-2 ${isHttpsBlocked ? 'text-orange-500' : 'text-red-500'}`} />
+                <p className={`font-medium ${isHttpsBlocked ? 'text-orange-700' : 'text-red-700'}`}>
+                  {isHttpsBlocked ? '🔒 HTTPS Blocks ESP8266 Control' : 'ESP8266 offline - Check device connection'}
+                </p>
               </div>
-              <span className="w-2 h-2 bg-red-500 rounded-full" />
+              <span className={`w-2 h-2 rounded-full ${isHttpsBlocked ? 'bg-orange-500' : 'bg-red-500'}`} />
             </div>
-            <p className="text-red-600 text-sm mt-1">{lastError}</p>
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-gray-600 text-xs">
-                HTTPS sites cannot connect to HTTP devices due to browser security.
-              </p>
-              <button 
-                onClick={discoverDevice}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                🔍 Check ESP8266 Connection
-              </button>
-            </div>
-            {window.location.protocol === 'https:' && (
-              <div className="mt-2 p-2 bg-orange-50 rounded border border-orange-200">
-                <p className="text-orange-800 text-xs font-medium">🔒 HTTPS Detected - Mixed Content Blocked</p>
-                <p className="text-orange-600 text-xs mt-1">
-                  HTTPS sites cannot connect to HTTP devices due to browser security.
+            <p className={`text-sm mt-1 ${isHttpsBlocked ? 'text-orange-600' : 'text-red-600'}`}>{lastError}</p>
+            
+            {!isHttpsBlocked && (
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-gray-600 text-xs">
+                  Check ESP8266 power and WiFi connection
                 </p>
-                <p className="text-blue-600 text-xs mt-1 font-medium">
-                  Solution: Use the HTTP version of this site:
-                </p>
-                <code className="text-xs bg-white px-2 py-1 rounded border text-gray-800 block mt-1">
-                  {window.location.href.replace('https://', 'http://')}
-                </code>
+                <button 
+                  onClick={discoverDevice}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  🔍 Retry Connection
+                </button>
               </div>
             )}
           </div>
+
+          {/* HTTPS Solution - More Prominent */}
+          {isHttpsBlocked && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+            >
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-blue-600 font-bold text-sm">⚡</span>
+                </div>
+                <div>
+                  <h4 className="text-blue-800 font-semibold text-sm">Quick Fix Required</h4>
+                  <p className="text-blue-600 text-xs">Use HTTP version for ESP8266 control</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <p className="text-blue-700 text-xs font-medium mb-2">📋 Copy this HTTP URL:</p>
+                  <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
+                    <code className="text-xs text-gray-800 font-mono select-all">{httpUrl}</code>
+                    <button 
+                      onClick={() => navigator.clipboard?.writeText(httpUrl)}
+                      className="text-blue-600 hover:text-blue-800 text-xs ml-2"
+                      title="Copy to clipboard"
+                    >
+                      📋
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => window.open(httpUrl, '_blank')}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"
+                  >
+                    🚀 Open HTTP Version
+                  </button>
+                  <button 
+                    onClick={() => window.location.href = httpUrl}
+                    className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium py-2 px-3 rounded-lg transition-colors"
+                  >
+                    🔄 Switch to HTTP
+                  </button>
+                </div>
+              </div>
+              
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-blue-600 text-xs">
+                  <strong>Why this happens:</strong> HTTPS sites cannot connect to HTTP devices (mixed content security policy).
+                  ESP8266 controllers typically use HTTP for local communication.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* General HTTPS Warning for non-blocked cases */}
+          {!isHttpsBlocked && window.location.protocol === 'https:' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-center">
+                <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center mr-2">
+                  <span className="text-amber-600 text-xs">⚠️</span>
+                </div>
+                <div>
+                  <p className="text-amber-800 text-xs font-medium">HTTPS Limitation</p>
+                  <p className="text-amber-600 text-xs">ESP8266 control requires HTTP. Switch to HTTP version if needed.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => window.open(httpUrl, '_blank')}
+                className="mt-2 text-amber-700 hover:text-amber-800 text-xs underline"
+              >
+                Open HTTP version
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

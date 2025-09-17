@@ -312,8 +312,14 @@ export const DeviceProvider = ({ children }) => {
 
   // Auto-discovery and connection monitoring (only on HTTP sites)
   useEffect(() => {
-    if (connectionStatus === 'unknown' && window.location.protocol === 'http:') {
-      discoverDevice();
+    if (connectionStatus === 'unknown') {
+      if (window.location.protocol === 'https:') {
+        // HTTPS sites cannot connect to HTTP ESP8266 devices due to mixed content restrictions
+        setConnectionStatus('error');
+        setLastError('HTTPS sites cannot connect to HTTP devices due to browser security (mixed content). Please use the HTTP version of this site to control your ESP8266 device.');
+      } else {
+        discoverDevice();
+      }
     }
   }, [connectionStatus, discoverDevice]);
 
